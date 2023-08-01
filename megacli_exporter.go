@@ -100,6 +100,64 @@ func getDiskInformation(raw []byte) []map[string]string {
 	return getSection(raw, "Disk information")
 }
 
+func compareLoop(gauges []prometheus.Gauge, scraped []map[string]string, metric_name string, metric_desc string) []prometheus.Gauge {
+	if len(gauges) != len(scraped) {
+		// clear old gauges
+		for _, g := range gauges {
+			prometheus.Unregister(g)
+		}
+		gauges = nil
+		// create new gauges
+		for _, scrapedInfo := range scraped {
+			gauge := promauto.NewGauge(prometheus.GaugeOpts{
+				Name:        metric_name,
+				Help:        metric_desc,
+				ConstLabels: scrapedInfo,
+			})
+
+			// if gauge is "megacli_array" and "status" is not "Optimal", then set it to 1
+			if metric_name == "megacli_array" && scrapedInfo["status"] != "Optimal" {
+				gauge.Set(1)
+			}
+
+			// if gauge is "megacli_disk" and "status" is not "Online, Spun Up", then set it to 1
+			if metric_name == "megacli_disk" && scrapedInfo["status"] != "Online, Spun Up" {
+				gauge.Set(1)
+			}
+
+			gauges = append(gauges, gauge)
+		}
+	} else {
+		// if same amount of elements, then just update the ones if lables changed
+		for i, gauge := range gauges {
+			scraped_desc := prometheus.NewDesc(metric_name, metric_desc, nil, prometheus.Labels(scraped[i]))
+
+			if scraped_desc != gauge.Desc() {
+				prometheus.Unregister(gauge)
+				gauge := promauto.NewGauge(prometheus.GaugeOpts{
+					Name:        metric_name,
+					Help:        metric_desc,
+					ConstLabels: scraped[i],
+				})
+
+				// if gauge is "megacli_array" and "status" is not "Optimal", then set it to 1
+				if metric_name == "megacli_array" && scraped[i]["status"] != "Optimal" {
+					gauge.Set(1)
+				}
+
+				// if gauge is "megacli_disk" and "status" is not "Online, Spun Up", then set it to 1
+				if metric_name == "megacli_disk" && scraped[i]["status"] != "Online, Spun Up" {
+					gauge.Set(1)
+				}
+
+				gauges[i] = gauge
+			}
+		}
+	}
+
+	return gauges
+}
+
 func recordMetrics() {
 	// set all controller information as constant metrics
 	for _, controllerInformation := range megaRaidControllersInformation {
@@ -108,8 +166,8 @@ func recordMetrics() {
 	megaRaidExporterCollectUp.Set(0)
 
 	// create new gauge for each array, and each disk
-	// var arrayGauges []prometheus.Gauge
-	// var diskGauges []prometheus.Gauge
+	var arrayGauges []prometheus.Gauge
+	var diskGauges []prometheus.Gauge
 
 	// create new gauge for each raid set
 	go func() {
@@ -121,9 +179,11 @@ func recordMetrics() {
 			array_info := getArrayInformation(raw)
 			disk_info := getDiskInformation(raw)
 
-			// if same amount of arrays, then just update the labels if changed
-			fmt.Println(array_info)
-			fmt.Println(disk_info)
+			// compare and modify gauges for arrays
+			arrayGauges = compareLoop(arrayGauges, array_info, "megacli_array", "MegaRAID Array status, 0 for 'Optimal', 1 for anything else")
+
+			// compare and modify gauges for disks
+			diskGauges = compareLoop(diskGauges, disk_info, "megacli_disk", "MegaRAID disk status, 0 for 'Online, Spun Up' 1 for anything else")
 
 			time.Sleep(5 * time.Second)
 		}
