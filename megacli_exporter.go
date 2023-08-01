@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log/level"
@@ -105,6 +106,28 @@ func recordMetrics() {
 		controllerInformation.Set(1)
 	}
 	megaRaidExporterCollectUp.Set(0)
+
+	// create new gauge for each array, and each disk
+	// var arrayGauges []prometheus.Gauge
+	// var diskGauges []prometheus.Gauge
+
+	// create new gauge for each raid set
+	go func() {
+		for {
+			// run cli
+			raw := runMegaCliSasStatus()
+
+			// parse it
+			array_info := getArrayInformation(raw)
+			disk_info := getDiskInformation(raw)
+
+			// if same amount of arrays, then just update the labels if changed
+			fmt.Println(array_info)
+			fmt.Println(disk_info)
+
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 }
 
