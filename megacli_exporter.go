@@ -198,7 +198,7 @@ func registerControllerInformationMetrics() []prometheus.Gauge {
 	for _, controllerInformation := range controllersInformation {
 		megaRaidControllerInformation := promauto.NewGauge(prometheus.GaugeOpts{
 			Name:        "megacli_controller_information",
-			Help:        "Constant metric with value 1 labeled with info about MegaRAID controller.",
+			Help:        "Constant metric with value 1 labeled with info about MegaRAID controller",
 			ConstLabels: controllerInformation,
 		})
 
@@ -214,7 +214,7 @@ var (
 	megaRaidControllersInformation = registerControllerInformationMetrics()
 	megaRaidExporterCollectUp      = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "megacli_exporter_up",
-		Help: "'0' if a scrape of the MegaRAID CLI was successful, '1' otherwise.",
+		Help: "'0' if a scrape of the MegaRAID CLI was successful, '1' otherwise",
 	})
 )
 
