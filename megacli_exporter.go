@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -29,12 +30,20 @@ func runMegaCliSasStatus() []byte {
 
 	if err != nil {
 		level.Error(logger).Log("err", err, "msg", out)
+		megaRaidExporterCollectUp.Set(1)
 	}
 
 	return out
 }
 
 func getSection(raw []byte, section string) []map[string]string {
+	defer func() {
+		if panicInfo := recover(); panicInfo != nil {
+			level.Error(logger).Log("err", panicInfo, "msg", debug.Stack())
+			megaRaidExporterCollectUp.Set(1)
+		}
+	}()
+
 	// split by newline, look for "-- Controller information --", next line is keys in hashmap, then values on lines bewlow that until empty line
 	// create array of raid sets
 	var controllersInformation []map[string]string
@@ -83,6 +92,10 @@ func getSection(raw []byte, section string) []map[string]string {
 			controllersInformation = append(controllersInformation, controllerInformation)
 		}
 
+	}
+
+	if len(controllersInformation) != 0 {
+		megaRaidExporterCollectUp.Set(0)
 	}
 
 	return controllersInformation
