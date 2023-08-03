@@ -11,6 +11,12 @@ Prometheus exporter for MegaRAID controllers using MegaCLI. Exporter depends on 
   - `megacli_array`: MegaRAID Array status, 0 for 'Optimal', 1 for anything else.
   - `megacli_disk`: MegaRAID disk status, 0 for 'Online, Spun Up' 1 for anything else.
 
+## Config options
+
+| Option               | Description               | Default |
+| -------------------- | ------------------------- | ------- |
+| `--collect-interval` | How often to poll MegaCLI | `5s`    |
+
 ## Prerequisites
 
 Before using the MegaCLI Prometheus Exporter, ensure you have the following prerequisites installed:

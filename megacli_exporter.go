@@ -198,7 +198,7 @@ func recordMetrics() {
 			// compare and modify gauges for disks
 			diskGauges = compareLoop(diskGauges, disk_info, "megacli_disk", "MegaRAID disk status, 0 for 'Online, Spun Up' 1 for anything else")
 
-			time.Sleep(5 * time.Second)
+			time.Sleep(*collectInterval)
 		}
 	}()
 
@@ -222,7 +222,8 @@ func registerControllerInformationMetrics() []prometheus.Gauge {
 }
 
 var (
-	logger = promlog.New(&promlog.Config{})
+	logger          = promlog.New(&promlog.Config{})
+	collectInterval = kingpin.Flag("collect-interval", "How often to poll MegaCLI").Default("5s").Duration()
 
 	megaRaidControllersInformation = registerControllerInformationMetrics()
 	megaRaidExporterCollectUp      = promauto.NewGauge(prometheus.GaugeOpts{
