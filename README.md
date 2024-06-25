@@ -26,7 +26,7 @@ Before using the MegaCLI Prometheus Exporter, ensure you have the following prer
 
 ## Contributors ✨
 
-Copyright (C) 2023, Vilhelm Prytz, <vilhelm@prytznet.se>
+Copyright (C) 2024, Vilhelm Prytz, <vilhelm@prytznet.se>
 
 Licensed under the [MIT license](LICENSE).
 
