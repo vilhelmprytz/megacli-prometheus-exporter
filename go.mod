@@ -1,6 +1,6 @@
 module megacli-prometheus-exporter
 
-go 1.20
+go 1.22
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
