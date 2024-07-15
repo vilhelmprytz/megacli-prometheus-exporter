@@ -251,6 +251,15 @@ func main() {
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
 
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<html>
+            <head><title>MegaCLI Exporter</title></head>
+            <body>
+            <h1>MegaCLI Exporter</h1>
+            <p><a href="/metrics">Metrics</a></p>
+            </body>
+            </html>`))
+	})
 	srv := &http.Server{}
 	if err := web.ListenAndServe(srv, toolkitFlags, logger); err != nil {
 		level.Error(logger).Log("err", err)
